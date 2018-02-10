@@ -16,41 +16,47 @@ Entry.prototype.setFocus = function(focused) {
 
   if (this.focused) {
     this.entry.focus();
-    //console.log(this.entry);
   }
+}
+
+Entry.prototype.setInner = function(inner) {
+  this.div.innerHTML = inner;
+}
+
+Entry.prototype.getInner = function() {
+  return this.div.innerHTML;
 }
 
 Entry.prototype.setText = function(text) {
   var _text = "";
   var added = false;
 
-  /*
   for (var i=0; i<text.length; i++) {
-    _text += "<var class='char'>" + text[i] + "</var>" + ((i<text.length - 1)? "\n": "");
+    //console.log(text[i]);
+    _text += "<var class='char'>" + text[i] + "</var>";
   }
-  */
-  _text = text;
 
-  if (_text !== "") {
-    this.div.innerHTML = _text;
-  }
+  this.setInner(_text);
 }
 
 Entry.prototype.getText = function() {
-  return this.entry[0].textContent;
+  return this.div.textContent;
 }
 
 Entry.prototype.insertExpEntryAtCursor = function() {
   var id = "entry-" + entriesCount;
   var style = "font-size: 15px;" +
+              /*
               "position: relative;" +
               "top: -40px;" +
+              */
               "min-width: 8px;" +
               "width: 8px;" +
               "margin-left: 20px;";
 
-  var inner = "<sup><div id='" + id + "' contenteditable='true' style='" + style + "' class='exp-entry'>a</div></sup>";
-  this.entry[0].innerHTML += inner;
+  var inner = this.getInner();
+  inner += "<sup><var><div id='" + id + "' contenteditable='true' style='" + style + "' class='exp-entry'>a</div></var></sup>";
+  this.setInner(inner);
 
   var entry = new Entry($(id));
   entry.setFocus(true);
@@ -65,19 +71,32 @@ Entry.prototype.getCaretPosition = function() {
   var caretPos = 0;
   var sel, range;
 
-  if (window.getSelection) {
+  if (window.getSelection !== undefined) {
     sel = window.getSelection();
     if (sel.rangeCount) {
       range = sel.getRangeAt(0);
-      if (range.commonAncestorContainer.parentNode == this.entry[0]) {
+      if ([this.div, $("#input-area")[0]].includes(range.commonAncestorContainer.parentNode)) {
         caretPos = range.endOffset;
+      } else if (range.commonAncestorContainer.parentNode.className === "char") {
+        if (range.commonAncestorContainer.parentNode === null) {
+        } else {
+          var child = range.commonAncestorContainer.parentNode.previousSibling;
+
+          if (child !== null) {
+            caretPos = 2;
+            while ((child = child.previousSibling) != null) caretPos++;
+
+          } else {
+            caretPos = 1;
+          }
+        }
       }
     }
   } else if (document.selection && document.selection.createRange) {
     range = document.selection.createRange();
-    if (range.parentElement() == this.entry[0]) {
+    if (range.parentElement() == this.div) {
       var tempEl = document.createElement("span");
-      this.entry[0].insertBefore(tempEl, this.entry[0].firstChild);
+      this.div.insertBefore(tempEl, this.div.firstChild);
       var tempRange = range.duplicate();
       tempRange.moveToElementText(tempEl);
       tempRange.setEndPoint("EndToEnd", range);
@@ -91,7 +110,7 @@ Entry.prototype.getCaretPosition = function() {
 Entry.prototype.setCaretPosition = function(caretPos) {
   var range = document.createRange();
   var sel = window.getSelection();
-  range.setStart(this.entry[0].childNodes[0], caretPos);
+  range.setStart(this.div, caretPos);
   range.collapse(true);
   sel.removeAllRanges();
   sel.addRange(range);
@@ -109,7 +128,8 @@ Entry.prototype.insertTextAtCursor = function(insertText) {
 Entry.prototype.init = function() {
   var _this = this;
 
-  var ignore = ["Alt", "Control", "Delete", "Backspace", "Tab", "Shift", "AltGraph", "ArrowDown", "ArrowLeft", "ArrowUp", "ArrowRight", "Space"];
+  var ignore = ["Alt", "Control", "Delete", "Backspace", "Tab", "Shift", "AltGraph", "ArrowDown", "ArrowLeft", "ArrowUp", "ArrowRight"];
+  var special = {"Space": " "};
 
   $(this.entry).on("focusin", function(event) {
     _this.setFocus(true);
@@ -120,18 +140,27 @@ Entry.prototype.init = function() {
   });
 
   $(this.entry).on("keydown", function(event) {
-    console.log(event.srcElement);
     if (event.key === "Enter") {
       return false;
     } else if (event.originalEvent.code === "Quote") {
       if (_this.hasFocus()) {
         _this.insertExpEntryAtCursor();
         return false;
-      } else {
       }
     } else if (!ignore.includes(event.key) && !ignore.includes(event.originalEvent.code) && !event.altKey && !event.ctrlKey) {
-      _this.insertTextAtCursor(event.key);
+      if (event.originalEvent.code in special) {
+        _this.insertTextAtCursor(special[event.originalEvent.code]);
+      } else {
+        _this.insertTextAtCursor(event.key);
+      }
+
       return false;
+    }
+  });
+
+  $(this.entry).bind("DOMSubtreeModified", function() {
+    if (_this.div.innerHTML.includes("<br>")) {
+      _this.div.innerHTML = _this.div.innerHTML.replaceAll("<br>", "");
     }
   });
 }
