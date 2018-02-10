@@ -55,6 +55,6 @@
   user-select: none;
 }
 
-#exp-entry:focus {
-  outline: 2px solid #000;
+.exp-entry {
+  outline: 2px solid #4c90dd;
 }
