@@ -1,0 +1,60 @@
+#input-area {
+  width: 450px;
+  height: 40px;
+  position: relative;
+  display: table;
+  margin: auto;
+  border-radius: 10px 10px 10px 10px;
+}
+
+#input-box {
+  width: calc(100% - 120px);
+  height: 30px;
+  padding: 0px 15px;
+  background-color: #e0e0e0;
+  cursor: text;
+  align-content: center;
+  display: table-cell;
+  border-radius: 10px 0 0 10px;
+  font-size: 20px;
+}
+
+/* Entradas con editables y con placeholder */
+[contenteditable=true]:empty:before {
+  content: attr(placeholder);
+  display: block;  /* Firefox */
+}
+
+#input-box:empty:before {
+  color: #6c6c6c;
+}
+
+[contenteditable="true"]:focus {
+  outline: 0px solid transparent;
+}
+
+#check-button {
+  background-color: #455a64;
+  cursor: pointer;
+  width: 100px;
+  display: table-cell;
+  border-radius: 0 10px 10px 0;
+}
+
+#check-button > p {
+  color: #fff;
+  margin-left: 30%;
+}
+
+.unselectable {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+#exp-entry:focus {
+  outline: 2px solid #000;
+}
