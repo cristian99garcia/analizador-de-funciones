@@ -151,7 +151,13 @@ Entry.prototype.init = function() {
       if (event.originalEvent.code in special) {
         _this.insertTextAtCursor(special[event.originalEvent.code]);
       } else {
-        _this.insertTextAtCursor(event.key);
+        let key = event.key;
+
+        if (!key) {
+          key = String.fromCharCode(currentCode);
+        }
+
+        _this.insertTextAtCursor(key);
       }
 
       return false;
